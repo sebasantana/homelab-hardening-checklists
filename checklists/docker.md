@@ -2,37 +2,37 @@
 
 ## Scope
 
-Checklist local-first para revisar seguridad operativa de Docker y servicios self-hosted en homelab, laboratorio o small office.
+Local-first checklist for reviewing the operational security of Docker and self-hosted services in a homelab, lab, or small-office environment.
 
-Cubre:
+Covers:
 
-- inventario de contenedores, imágenes, puertos, mounts y redes;
-- exposición local/LAN/VPN/pública;
-- secretos y archivos sensibles;
-- flags y permisos peligrosos;
-- persistencia, backups y restore;
-- estrategia de updates y rollback.
+- inventory of containers, images, ports, mounts, and networks;
+- local/LAN/VPN/public exposure;
+- secrets and sensitive files;
+- dangerous flags and permissions;
+- persistence, backups, and restore;
+- update and rollback strategy.
 
-No reemplaza un hardening completo del host, firewall, reverse proxy, IAM, SIEM, EDR ni gestión formal de vulnerabilidades.
+This does not replace full host hardening, firewall review, reverse-proxy review, IAM, SIEM, EDR, or formal vulnerability management.
 
 ## Assumptions
 
-- Tenés acceso local autorizado al host Docker.
-- Los comandos son **read-only** salvo que se indique lo contrario. En esta checklist no se incluyen acciones destructivas.
-- El output puede contener datos sensibles: dominios internos, rutas, nombres de servicios, variables, tokens o IPs privadas.
-- Las excepciones existen: `--privileged`, `root`, `host network` o `docker.sock` no siempre son incorrectos, pero deben estar justificados, documentados y compensados.
+- You have authorized local access to the Docker host.
+- Commands are **read-only** unless explicitly stated otherwise. This checklist does not include destructive actions.
+- Command output may contain sensitive data: internal domains, paths, service names, variables, tokens, or private IPs.
+- Exceptions exist: `--privileged`, `root`, `host network`, or `docker.sock` are not always wrong, but they must be justified, documented, and compensated.
 
-## Safety note — no publicar outputs crudos
+## Safety note — do not publish raw outputs
 
-Antes de compartir evidencia, sanitizá:
+Before sharing evidence, sanitize:
 
 - tokens, API keys, passwords, cookies, JWTs;
-- dominios internos, hostnames, IPs públicas, IPs privadas sensibles;
-- rutas locales con nombres de usuarios o clientes;
-- nombres de contenedores que revelen arquitectura o negocio;
-- valores de `.env`, labels de proxy, URLs internas y headers.
+- internal domains, hostnames, public IPs, sensitive private IPs;
+- local paths containing usernames or customer names;
+- container names that reveal architecture or business context;
+- `.env` values, proxy labels, internal URLs, and headers.
 
-Ejemplo sanitizado:
+Sanitized example:
 
 ```text
 GOOD: app-web -> 127.0.0.1:8080, image app:1.4.2, volume /srv/app-data:/data:ro
