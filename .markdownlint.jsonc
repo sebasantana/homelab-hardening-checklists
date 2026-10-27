@@ -1,0 +1,20 @@
+// markdownlint configuration for this repository.
+// https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+{
+  "default": true,
+
+  // Long lines are normal for checklist items, tables, and commands.
+  "MD013": false,
+
+  // Inline HTML (for example comments in templates) is allowed.
+  "MD033": false,
+
+  // Sections in different checklists reuse headings such as "Good example".
+  "MD024": { "siblings_only": true },
+
+  // Bold labels such as "Read-only commands:" are used as lightweight captions.
+  "MD036": false,
+
+  // Tables use the compact "|---|" delimiter style without column alignment.
+  "MD060": false
+}

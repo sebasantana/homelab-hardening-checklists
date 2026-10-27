@@ -1,4 +1,4 @@
-# Docker / Self-hosted Services Checklist v0.2
+# Docker / Self-hosted Services Checklist v0.3
 
 ## Scope
 
@@ -50,7 +50,7 @@ BAD:  app-web -> 203.0.113.10:8080, TOKEN=<redacted>, /Users/alice/client-x/prod
 
 ## Quick audit — 10 minutes
 
-Use this first to decide what needs attention. Keep outputs local and sanitize before sharing. If there are no running containers, some `docker inspect $(docker ps -q)` commands may return an error; note it and continue. For scripts, prefer guarding empty input first, for example: `ids=$(docker ps -q); [ -n "$ids" ] && docker inspect ... $ids`.
+Use this first to decide what needs attention. Keep outputs local and sanitize before sharing. The `docker inspect ... $(docker ps -q)` commands below fail with “requires at least 1 argument” when no containers are running; that is expected, note it and continue. The code blocks in later sections guard against this with a one-line helper that works in bash and zsh: `running() { [ -n "$(docker ps -q)" ]; }`, then `running && docker inspect ... $(docker ps -q)`.
 
 | Check | Severity | Read-only command | Look for |
 |---|---:|---|---|
@@ -59,7 +59,7 @@ Use this first to decide what needs attention. Keep outputs local and sanitize b
 | Host networking | High | `docker inspect --format '{{.Name}} network={{.HostConfig.NetworkMode}}' $(docker ps -q)` | `network=host` |
 | Docker socket mounts | Critical | `docker inspect --format '{{.Name}} {{range .Mounts}}{{.Source}}:{{.Destination}} {{end}}' $(docker ps -q)` | `/var/run/docker.sock` |
 | Broad host mounts | High | `docker inspect --format '{{.Name}} {{range .Mounts}}{{.Source}}:{{.Destination}} {{end}}' $(docker ps -q)` | `/`, `/home`, `/Users`, `/etc`, `/var` mounted broadly |
-| Secrets in compose/env | Critical | `grep -RIlE 'password|passwd|token|secret|api[_-]?key|jwt' . --exclude-dir=.git` | file names that may contain secrets; inspect locally only |
+| Secrets in compose/env | Critical | `grep -RIlE 'password\|passwd\|token\|secret\|api[_-]?key\|jwt' . --exclude-dir=.git` | file names that may contain secrets; inspect locally only |
 | Image tags | Medium | `docker ps --format '{{.Names}} {{.Image}}'` | important services using `latest` |
 | Volumes/backups | High | `docker volume ls` + compose files | persistent data with no backup/restore note |
 
@@ -80,10 +80,11 @@ Goal: know what is running before changing anything.
 Read-only commands:
 
 ```bash
+running() { [ -n "$(docker ps -q)" ]; }   # docker inspect needs at least one ID
 docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
 docker ps --format 'table {{.Names}}\t{{.RunningFor}}\t{{.Ports}}'
-docker inspect --format '{{.Name}} restart={{.HostConfig.RestartPolicy.Name}} network={{.HostConfig.NetworkMode}} privileged={{.HostConfig.Privileged}}' $(docker ps -q)
-docker inspect --format '{{.Name}} {{range .Mounts}}{{.Type}} {{.Source}} -> {{.Destination}} rw={{.RW}}; {{end}}' $(docker ps -q)
+running && docker inspect --format '{{.Name}} restart={{.HostConfig.RestartPolicy.Name}} network={{.HostConfig.NetworkMode}} privileged={{.HostConfig.Privileged}}' $(docker ps -q)
+running && docker inspect --format '{{.Name}} {{range .Mounts}}{{.Type}} {{.Source}} -> {{.Destination}} rw={{.RW}}; {{end}}' $(docker ps -q)
 ```
 
 Evidence to keep locally. Use sanitized names; do not include customer names, real public IPs, domains, tokens or full private paths:
@@ -196,8 +197,9 @@ host PID/IPC namespaces
 Read-only commands:
 
 ```bash
-docker inspect --format '{{.Name}} privileged={{.HostConfig.Privileged}} user={{.Config.User}} network={{.HostConfig.NetworkMode}} pid={{.HostConfig.PidMode}} ipc={{.HostConfig.IpcMode}} caps={{.HostConfig.CapAdd}}' $(docker ps -q)
-docker inspect --format '{{.Name}} {{range .Mounts}}{{.Source}} -> {{.Destination}} rw={{.RW}}; {{end}}' $(docker ps -q)
+running() { [ -n "$(docker ps -q)" ]; }   # docker inspect needs at least one ID
+running && docker inspect --format '{{.Name}} privileged={{.HostConfig.Privileged}} user={{.Config.User}} network={{.HostConfig.NetworkMode}} pid={{.HostConfig.PidMode}} ipc={{.HostConfig.IpcMode}} caps={{.HostConfig.CapAdd}}' $(docker ps -q)
+running && docker inspect --format '{{.Name}} {{range .Mounts}}{{.Source}} -> {{.Destination}} rw={{.RW}}; {{end}}' $(docker ps -q)
 ```
 
 Checklist:
@@ -231,8 +233,9 @@ Goal: recover the service, not just preserve the compose file.
 Read-only commands:
 
 ```bash
+running() { [ -n "$(docker ps -q)" ]; }   # docker inspect needs at least one ID
 docker volume ls
-docker inspect --format '{{.Name}} {{range .Mounts}}{{.Type}} {{.Name}} {{.Source}} -> {{.Destination}}; {{end}}' $(docker ps -q)
+running && docker inspect --format '{{.Name}} {{range .Mounts}}{{.Type}} {{.Name}} {{.Source}} -> {{.Destination}}; {{end}}' $(docker ps -q)
 find . -maxdepth 3 -iname '*backup*' -o -iname '*restore*' -o -iname 'README*'
 ```
 

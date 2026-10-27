@@ -58,6 +58,7 @@ examples/     Sanitized examples with fictional networks and hosts
 | Proxmox | [Proxmox](checklists/proxmox.md) | Draft |
 | Docker | [Docker](checklists/docker.md) | Draft |
 | Network | [Network segmentation](checklists/network-segmentation.md) | Draft |
+| Backup & recovery | [Backup and recovery](checklists/backup-recovery.md) | Draft |
 
 ## How to use
 
@@ -69,11 +70,17 @@ examples/     Sanitized examples with fictional networks and hosts
 6. Validate after every change.
 7. Keep notes of exceptions and intentional deviations.
 
+## Versioning
+
+Checklists carry a version in their title (for example `v0.3`). All checklists are bumped together for each release; see [CHANGELOG.md](CHANGELOG.md) for what changed. Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Safety note
 
 Do not paste real public IPs, secrets, customer data, private hostnames, tokens, VPN configs, or exact internal diagrams into public issues or examples.
 
 All examples in this repository should be sanitized.
+
+If you find a real secret, IP, or hostname published here by mistake, report it privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -1,4 +1,4 @@
-# Home Assistant Hardening Checklist
+# Home Assistant Hardening Checklist v0.3
 
 A practical checklist for reviewing a Home Assistant instance from a security and
 reliability perspective.
