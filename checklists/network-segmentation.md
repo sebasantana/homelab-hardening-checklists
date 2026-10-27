@@ -1,4 +1,4 @@
-# Network Segmentation Checklist v0.2
+# Network Segmentation Checklist v0.3
 
 A practical checklist for home networks with VLANs, IoT devices, homelab services, and guest access.
 
