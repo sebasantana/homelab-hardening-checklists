@@ -223,7 +223,7 @@ Last tested: YYYY-MM-DD
 
 Goal: prove backups work before you need them, and learn how long recovery takes.
 
-A restore test is a **change**: it writes data, creates guests or files, and can cause address or hostname conflicts. Restore into an isolated location (scratch directory, new VMID with disconnected network, separate container) and remove it afterwards.
+A restore test is a **change**: it writes data, creates guests or files, and can cause address or hostname conflicts. Restore into an isolated location (scratch directory, new VMID with disconnected network, separate container) and remove it afterwards. Isolating the network is not enough: restored guest configs and compose files still reference host bind mounts, passthrough disks, and devices, so review and repoint them at disposable copies before the first start.
 
 - [ ] **[High]** Restore at least one representative file set or system on a fixed cadence.
 - [ ] **[High]** At least one test uses only the off-site copy and keys retrieved from outside the environment.

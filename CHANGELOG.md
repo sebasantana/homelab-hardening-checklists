@@ -4,6 +4,13 @@ All notable changes to this repository are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Checklist versions in titles follow the release number (for example, release 0.3.0 ships checklists titled `v0.3`).
 
+## [0.3.1] - 2026-10-27
+
+### Security
+
+- Linux baseline: the "good" sudo example allowed `/usr/bin/restic` with any arguments, which is equivalent to root (`--password-command`, `restore --target /`). It now uses an argument-less, root-owned wrapper, the bad example shows the restic rule, and two checklist items require pinned sudo arguments and no sudo for backup tools.
+- Proxmox restore testing: isolating the NIC does not stop a restored guest from using bind mounts, passthrough disks, or `hostpci`/`usb` devices kept in its config, which point at production data. Added a pre-boot config review, commands to remove those entries, and `onboot` disabling. The same caveat is now in the backup & recovery restore-testing note, and Docker restore tests must use a separate compose project with repointed mounts.
+
 ## [0.3.0] - 2026-10-27
 
 ### Added

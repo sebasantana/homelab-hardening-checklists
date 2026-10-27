@@ -226,6 +226,7 @@ Goal: recover the service, not just preserve the compose file.
 - [ ] **[High]** Identify persistent volumes and bind mounts.
 - [ ] **[High]** Back up application data, databases and required config.
 - [ ] **[High]** Test restore of at least one representative service.
+- [ ] **[Critical]** Test restores use a separate compose project (`-p <name>-restore-test`) with bind mounts and named volumes repointed at restored copies; never start a test stack against the production host paths or volumes.
 - [ ] **[Medium]** Document restore order and dependencies.
 - [ ] **[Medium]** Confirm backups are stored outside the same single disk/failure domain.
 - [ ] **[Hygiene]** Keep a short restore runbook per critical stack.
