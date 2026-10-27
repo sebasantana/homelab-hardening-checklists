@@ -368,8 +368,12 @@ Goal: a restore is a rehearsed procedure with a known duration, not a first atte
 
 A test restore is a **change**: it creates a guest, consumes storage, and can cause IP, MAC, or hostname conflicts. Do it in a maintenance window with a free VMID and isolated networking.
 
+Network isolation is not enough. The restored configuration keeps container bind mounts (`mpX:` pointing at host paths), `lxc.mount.entry` lines, VM passthrough disks (`/dev/disk/by-id/...`), and `hostpci`/`usb` devices. Their data is not in the backup, but the entries are, so a test guest started as-is reads and writes the **production** data and devices.
+
 - [ ] **[High]** Test restore of at least one non-critical VM and one container on a schedule (for example quarterly) and after major upgrades.
 - [ ] **[High]** Restore to a new VMID with unique MAC addresses, NICs disconnected or on an isolated bridge, so the copy does not collide with production.
+- [ ] **[Critical]** Before the first start, review the restored config and remove host bind mounts, `lxc.mount.entry` lines, passthrough disks, and `hostpci`/`usb` devices, or point them at disposable test copies. Use `ro=1` only when the test genuinely needs to read that path.
+- [ ] **[High]** Disable `onboot` on the test guest so a node reboot does not start it with production-facing settings.
 - [ ] **[High]** Confirm at least one restore works using only the off-node copy and the off-node encryption key.
 - [ ] **[Medium]** Measure restore time and record it next to the RTO.
 - [ ] **[Medium]** Test PBS single-file restore for a guest where that is the common case.
@@ -385,7 +389,24 @@ qmrestore <backup-volid> <new-vmid> --storage <target-storage> --unique 1
 pct restore <new-ctid> <backup-volid> --storage <target-storage> --unique 1
 ```
 
-After restore and before boot, set the NIC to disconnected (`link_down=1`) or attach it to an isolated bridge in the GUI.
+Neither command starts the guest unless you pass `--start`; do not pass it. Before the first boot, review what the restored config still references (read-only):
+
+```bash
+pct config <new-ctid> | grep -E '^(mp[0-9]+|dev[0-9]+|lxc\.mount\.entry|onboot|net[0-9]+):'
+qm config <new-vmid> | grep -E '^(scsi|sata|virtio|ide)[0-9]+:.*/dev/|^(hostpci|usb)[0-9]+:|^(onboot|net[0-9]+):'
+```
+
+Then neutralize anything that points at production (these **change** the test guest only):
+
+```bash
+pct set <new-ctid> --delete mp0 --onboot 0          # repeat for each host bind mount
+pct set <new-ctid> --net0 <same-options>,link_down=1
+qm set <new-vmid> --delete scsi1,hostpci0,usb0 --onboot 0
+qm set <new-vmid> --net0 <same-options>,link_down=1
+# lxc.mount.entry lines: remove them from /etc/pve/lxc/<new-ctid>.conf
+```
+
+Alternatively attach the NIC to an isolated bridge in the GUI. If the application test needs the bind-mounted data, mount a copy, never the production path.
 
 Evidence format:
 

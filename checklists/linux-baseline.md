@@ -113,6 +113,8 @@ Goal: every account that can log in or escalate is known, needed, and individual
 - [ ] **[Critical]** No accounts have empty password fields.
 - [ ] **[High]** Members of `sudo` (Debian/Ubuntu) or `wheel` (RHEL/Fedora) are expected and named individuals or documented automation accounts.
 - [ ] **[High]** `NOPASSWD` rules are scoped to specific commands, not `ALL`, unless justified.
+- [ ] **[Critical]** Every sudo rule that names a command also pins its arguments, or forbids them with `""`. A binary allowed with free arguments is root if it can run commands, write arbitrary paths, or read arbitrary files: backup tools (`restic --password-command`, `restic restore --target /`, `tar`, `rsync`), `find`, editors, pagers, and interpreters all qualify (see GTFOBins).
+- [ ] **[High]** Backup agents do not get sudo on the backup tool. Prefer a dedicated user with `cap_dac_read_search` on a binary only that user can execute, or a root-owned wrapper with fixed repository, paths, and no arguments.
 - [ ] **[High]** Shared admin accounts are avoided; humans use named accounts.
 - [ ] **[Medium]** Service accounts have a non-login shell (`/usr/sbin/nologin` or `/bin/false`).
 - [ ] **[Medium]** Former users and temporary accounts are locked or removed.
@@ -134,7 +136,9 @@ sudo lastb -n 20 -a 2>/dev/null   # failed logins, if btmp is kept
 Good example:
 
 ```text
-sudo group: admin-01 (named human), backup-svc (NOPASSWD: /usr/bin/restic only)
+sudo group: admin-01 (named human)
+/etc/sudoers.d/50-backup: backup-svc ALL=(root) NOPASSWD: /usr/local/sbin/run-backup ""
+  run-backup: root:root 0755, fixed repo and paths, takes no arguments, env_reset left on
 login shells: root, admin-01; all service accounts use nologin
 ```
 
@@ -143,6 +147,8 @@ Bad example:
 ```text
 sudo group: admin, deploy, olduser, test
 /etc/sudoers.d/90-deploy: deploy ALL=(ALL) NOPASSWD: ALL
+/etc/sudoers.d/50-backup: backup-svc ALL=(root) NOPASSWD: /usr/bin/restic
+  any arguments allowed: `sudo restic --password-command '<cmd>'` runs <cmd> as root
 ```
 
 ## 3. SSH
